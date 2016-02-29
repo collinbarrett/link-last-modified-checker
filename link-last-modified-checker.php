@@ -3,7 +3,7 @@
 Plugin Name: Link Last Modified Checker
 Plugin URI: https://collinmbarrett.com/projects/
 Description: Plugin to check the last modified date of remote files via shortcode built for use on https://filterlists.com.
-Version: 0.1.1
+Version: 0.1.2
 Author: Collin M. Barrett
 Author URI: https://collinmbarrett.com/
 */
@@ -19,12 +19,16 @@ function lastmodified_func( $atts ) {
 add_shortcode( 'lastmodified', 'lastmodified_func' );
 
 // check the last modified value of a url
-function filemtime_remote( $url )
-{
-    $list = file_get_contents( $url , null , null , 0 , 200);
+function filemtime_remote( $url ){
+  $mydate = get_transient( 'lm_' . esc_url( $url ) );
+  if( false === $mydate ) {
+    $list = file_get_contents( $url , null , null , 0 , 250);
     $important = explode("Last modified: ",$list)[1];
     $mydate = substr($important, 0, 21);
-    return $mydate;
+    $timeout = mt_rand( 21600 , 64800 );
+    set_transient( 'lm_' . esc_url( $url ), $mydate , $timeout );
+  }
+  return $mydate;
 }
 
 ?>
